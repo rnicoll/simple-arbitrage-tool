@@ -32,18 +32,15 @@ namespace Lostics.SimpleArbitrageBot
 
         private static void DoTrading(List<AbstractExchange> exchanges)
         {
-            const int totalCurrencies = 12;
+            const int maxCurrencies = 12;
             Dictionary<AbstractExchange, List<Market>> validMarkets
-                = MarketAnalyser.GetHighVolumeMarkets(exchanges, "BTC", totalCurrencies);
+                = MarketAnalyser.GetHighVolumeMarkets(exchanges, "BTC", maxCurrencies);
+            MarketMatrix marketMatrix = new MarketMatrix(validMarkets);
 
-            foreach (AbstractExchange exchange in exchanges)
+            Console.WriteLine("Valid currencies: ");
+            foreach (string currency in validCurrencies)
             {
-                Console.WriteLine("High volume currencies on "
-                    + exchange.Label + ": ");
-                foreach (Market market in validMarkets[exchange])
-                {
-                    Console.WriteLine(market.ToString());
-                }
+                Console.WriteLine(currency);
             }
 
             Console.WriteLine("\nDone");

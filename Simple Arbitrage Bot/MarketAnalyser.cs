@@ -11,7 +11,7 @@ namespace Lostics.SimpleArbitrageBot
     public class MarketAnalyser
     {
         public static Dictionary<AbstractExchange, List<Market>> GetHighVolumeMarkets(List<AbstractExchange> exchanges,
-            string referenceCurrencyCode, int totalCurrencies)
+            string referenceCurrencyCode, int maxCurrencies)
         {
             Dictionary<AbstractExchange, Task<List<Market>>> allMarkets = new Dictionary<AbstractExchange, Task<List<Market>>>();
 
@@ -31,13 +31,10 @@ namespace Lostics.SimpleArbitrageBot
 
             decimal cutOff = (decimal)0.00000000;
 
-            if (highestVolumes.Count > totalCurrencies)
+            if (highestVolumes.Count > maxCurrencies)
             {
-                cutOff = highestVolumes[totalCurrencies - 1];
+                cutOff = highestVolumes[maxCurrencies - 1];
             }
-
-            // Generate volume value for reference currency
-            currenciesByVolume[referenceCurrencyCode] = currenciesByVolume.Values.Sum();
                 
             Dictionary<AbstractExchange, List<Market>> validMarkets = new Dictionary<AbstractExchange, List<Market>>();
 
@@ -94,6 +91,9 @@ namespace Lostics.SimpleArbitrageBot
                     currenciesByVolume[market.BaseCurrencyCode] = volume;
                 }
             }
+
+            // Generate volume value for reference currency
+            currenciesByVolume[referenceCurrencyCode] = currenciesByVolume.Values.Sum();
 
             return currenciesByVolume;
         }
