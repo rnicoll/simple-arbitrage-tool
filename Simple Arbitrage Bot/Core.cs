@@ -32,7 +32,9 @@ namespace Lostics.SimpleArbitrageBot
 
         private static void DoTrading(List<AbstractExchange> exchanges)
         {
-            Dictionary<AbstractExchange, List<Market>> validMarkets = MarketAnalyser.GetHighVolumeMarkets(exchanges);
+            const int totalCurrencies = 12;
+            Dictionary<AbstractExchange, List<Market>> validMarkets
+                = MarketAnalyser.GetHighVolumeMarkets(exchanges, "BTC", totalCurrencies);
 
             foreach (AbstractExchange exchange in exchanges)
             {
