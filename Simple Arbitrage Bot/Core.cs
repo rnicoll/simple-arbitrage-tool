@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lostics.SimpleArbitrageBot
+namespace Lostics.SimpleArbitrageTool
 {
     public class Core
     {
@@ -22,7 +22,7 @@ namespace Lostics.SimpleArbitrageBot
             {
                 using (CoinsEExchange coinsE = CoinsEExchange.GetExchange(FindCoinsEConfigurationFile()))
                 {
-                    DoTrading(new List<AbstractExchange>() {
+                    DoAnalysis(new List<AbstractExchange>() {
                         cryptsy,
                         coinsE
                     });
@@ -30,7 +30,7 @@ namespace Lostics.SimpleArbitrageBot
             }
         }
 
-        private static void DoTrading(List<AbstractExchange> exchanges)
+        private static void DoAnalysis(List<AbstractExchange> exchanges)
         {
             const int maxCurrencies = 12;
             Dictionary<AbstractExchange, List<Market>> validMarkets

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Lostics.SimpleArbitrageBot
+namespace Lostics.SimpleArbitrageTool
 {
     public class ArbitrageOpportunity
     {

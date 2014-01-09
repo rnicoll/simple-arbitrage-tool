@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lostics.SimpleArbitrageBot
+namespace Lostics.SimpleArbitrageTool
 {
     /// <summary>
     /// Represents a price for a currency, that can be traded directly on an exchange.

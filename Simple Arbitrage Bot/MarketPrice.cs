@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lostics.SimpleArbitrageBot
+namespace Lostics.SimpleArbitrageTool
 {
     public abstract class MarketPrice
     {
