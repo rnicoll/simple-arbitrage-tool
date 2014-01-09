@@ -43,7 +43,11 @@ namespace Lostics.SimpleArbitrageBot
 
                     // Only count volume against BTC, but make sure we log all currencies anyway
                     if (market.QuoteCurrencyCode.Equals("BTC")) {
-                        volume += market.Statistics.Volume24H;
+                        // We have to convert volume in the base currency across to the quote currency
+                        if (market.Statistics.LastTrade > (decimal)0.00000000)
+                        {
+                            volume += (market.Statistics.Volume24HBase * market.Statistics.LastTrade);
+                        }
                     }
 
                     currenciesByVolume[market.BaseCurrencyCode] = volume;
