@@ -37,8 +37,9 @@ namespace Lostics.SimpleArbitrageBot
                 = MarketAnalyser.GetHighVolumeMarkets(exchanges, "BTC", maxCurrencies);
             MarketMatrix marketMatrix = new MarketMatrix(validMarkets);
 
-            marketMatrix.UpdatePrices();
-            marketMatrix.DumpPrices(Console.Out);
+            foreach (ArbitrageOpportunity opportunity in marketMatrix.GetArbitrageOpportunities()) {
+                Console.WriteLine(opportunity.ToString());
+            }
 
             Console.WriteLine("\nDone");
             Console.ReadKey();

@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArbitrageOpportunity.cs" />
     <Compile Include="Core.cs" />
     <Compile Include="ExchangePrice.cs" />
     <Compile Include="IdentityPrice.cs" />

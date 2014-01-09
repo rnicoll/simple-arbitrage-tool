@@ -55,8 +55,6 @@ namespace Lostics.SimpleArbitrageBot
                     );
                 }
             }
-
-            // TODO: Build up indirect currency pairs here
         }
 
         private static string[] GetIndividualCurrencies(Dictionary<AbstractExchange, List<Market>> validMarkets)
@@ -75,8 +73,11 @@ namespace Lostics.SimpleArbitrageBot
             return currencies.ToArray();
         }
 
-        public void DumpPrices(TextWriter writer)
+        public List<ArbitrageOpportunity> GetArbitrageOpportunities()
         {
+            this.UpdateAllPrices();
+
+            List<ArbitrageOpportunity> opportunities = new List<ArbitrageOpportunity>();
             int currencyCount = prices.GetLength(0);
 
             // Start the data fetch running in parallel
@@ -89,27 +90,25 @@ namespace Lostics.SimpleArbitrageBot
                         continue;
                     }
 
-                    decimal? highestBid = null;
-                    decimal? lowestAsk = null;
-                    string label = this.currencyCodes[baseCurrencyIdx] + "/"
-                        + this.currencyCodes[quoteCurrencyIdx];
+                    MarketPrice highestBid = null;
+                    MarketPrice lowestAsk = null;
 
                     foreach (MarketPrice marketPrice in this.prices[baseCurrencyIdx, quoteCurrencyIdx])
                     {
                         if (marketPrice.Bid != null)
                         {
                             if (highestBid == null
-                                || marketPrice.Bid > highestBid)
+                                || marketPrice.Bid > highestBid.Bid)
                             {
-                                highestBid = marketPrice.Bid;
+                                highestBid = marketPrice;
                             }
                         }
                         if (marketPrice.Ask != null)
                         {
                             if (lowestAsk == null
-                                || marketPrice.Ask < lowestAsk)
+                                || marketPrice.Ask < lowestAsk.Ask)
                             {
-                                lowestAsk = marketPrice.Ask;
+                                lowestAsk = marketPrice;
                             }
                         }
                     }
@@ -117,15 +116,21 @@ namespace Lostics.SimpleArbitrageBot
                     if (null != highestBid
                         && null != lowestAsk)
                     {
-                        writer.WriteLine(label + ": High bid is "
-                            + highestBid + ", lowest ask is "
-                            + lowestAsk);
+                        if (highestBid.Bid > lowestAsk.Ask
+                            && !highestBid.Equals(lowestAsk))
+                        {
+                            string label = this.currencyCodes[baseCurrencyIdx] + "/"
+                                + this.currencyCodes[quoteCurrencyIdx];
+                            opportunities.Add(new ArbitrageOpportunity(label, lowestAsk, highestBid));
+                        }
                     }
                 }
             }
+
+            return opportunities;
         }
 
-        public void UpdatePrices()
+        public void UpdateAllPrices()
         {
             if (prices.Length == 0)
             {
