@@ -154,5 +154,5 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
-/Simple Arbitrage Bot/*.conf
-/Simple Arbitrage Bot/*.conf
+/Simple Arbitrage Tool/*.conf
+/Simple Arbitrage Tool/*.conf
