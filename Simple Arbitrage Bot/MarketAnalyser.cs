@@ -10,28 +10,73 @@ namespace Lostics.SimpleArbitrageBot
 {
     public class MarketAnalyser
     {
-        public static async Task<IEnumerable<string>> GetHighVolumeCurrencies<M, O>(AbstractExchange<M, O> exchange, int totalCurrencies)
-            where M : MarketId
-            where O : OrderId
+        public static Dictionary<AbstractExchange, List<Market>> GetHighVolumeMarkets(List<AbstractExchange> exchanges)
         {
-            List<Market<M>> markets = await exchange.GetMarkets();
+            const int totalCurrencies = 10;
+            Dictionary<AbstractExchange, Task<List<Market>>> allMarkets = new Dictionary<AbstractExchange, Task<List<Market>>>();
 
-            markets = markets.Where(x => x.QuoteCurrencyCode.Equals("BTC")).ToList();
-            markets.Sort((m1, m2) => m2.Statistics.Volume24H.CompareTo(m1.Statistics.Volume24H));
-
-            HashSet<string> currencies = new HashSet<string>();
-
-            foreach (Market<M> market in markets)
+            // Start fetching markets for all exchanges
+            foreach (AbstractExchange exchange in exchanges)
             {
-                currencies.Add(market.BaseCurrencyCode);
-
-                if (currencies.Count >= totalCurrencies)
-                {
-                    break;
-                }
+                allMarkets.Add(exchange, exchange.GetMarkets());
             }
 
-            return currencies;
+            // Find the most popular currencies
+            Dictionary<string, decimal> currenciesByVolume = new Dictionary<string, decimal>();
+
+            foreach (AbstractExchange exchange in exchanges)
+            {
+                List<Market> markets = allMarkets[exchange].Result;
+
+                foreach (Market market in markets)
+                {
+                    decimal volume;
+
+                    if (currenciesByVolume.ContainsKey(market.BaseCurrencyCode))
+                    {
+                        volume = currenciesByVolume[market.BaseCurrencyCode];
+                    }
+                    else
+                    {
+                        volume = (decimal)0.00000000;
+                    }
+
+                    // Only count volume against BTC, but make sure we log all currencies anyway
+                    if (market.QuoteCurrencyCode.Equals("BTC")) {
+                        volume += market.Statistics.Volume24H;
+                    }
+
+                    currenciesByVolume[market.BaseCurrencyCode] = volume;
+                }
+            }
+                
+            // Sort the highest volumes to determine cut-off
+            List<decimal> highestVolumes = currenciesByVolume.Values.ToList();
+                
+            highestVolumes.Sort((v1, v2) => v2.CompareTo(v1));
+
+            decimal cutOff = (decimal)0.00000000;
+
+            if (highestVolumes.Count > totalCurrencies)
+            {
+                cutOff = highestVolumes[totalCurrencies - 1];
+            }
+
+            // Generate value for BTC
+            currenciesByVolume["BTC"] = currenciesByVolume.Values.Sum();
+                
+            Dictionary<AbstractExchange, List<Market>> validMarkets = new Dictionary<AbstractExchange, List<Market>>();
+
+            foreach (AbstractExchange exchange in exchanges)
+            {
+                List<Market> markets = allMarkets[exchange].Result
+                    .Where(x => currenciesByVolume[x.BaseCurrencyCode] >= cutOff)
+                    .Where(x => currenciesByVolume[x.QuoteCurrencyCode] >= cutOff)
+                    .ToList();
+                validMarkets.Add(exchange, markets);
+            }
+
+            return validMarkets;
         }
     }
 }

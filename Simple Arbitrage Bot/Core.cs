@@ -1,4 +1,5 @@
-﻿using Lostics.NCryptoExchange.CoinsE;
+﻿using Lostics.NCryptoExchange;
+using Lostics.NCryptoExchange.CoinsE;
 using Lostics.NCryptoExchange.Cryptsy;
 using Lostics.NCryptoExchange.Model;
 using System;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Lostics.SimpleArbitrageBot
 {
@@ -20,24 +22,26 @@ namespace Lostics.SimpleArbitrageBot
             {
                 using (CoinsEExchange coinsE = CoinsEExchange.GetExchange(FindCoinsEConfigurationFile()))
                 {
-                    DoTrading(cryptsy, coinsE);
+                    DoTrading(new List<AbstractExchange>() {
+                        cryptsy,
+                        coinsE
+                    });
                 }
             }
         }
 
-        private static void DoTrading(CryptsyExchange cryptsy, CoinsEExchange coinsE)
+        private static void DoTrading(List<AbstractExchange> exchanges)
         {
-            const int totalCurrencies = 10;
-            IEnumerable<string> cryptsyCurrencies = MarketAnalyser.GetHighVolumeCurrencies(cryptsy, totalCurrencies).Result;
-            IEnumerable<string> coinsECurrencies = MarketAnalyser.GetHighVolumeCurrencies(coinsE, totalCurrencies).Result;
-            HashSet<string> currencies = new HashSet<string>(
-                cryptsyCurrencies.Concat(coinsECurrencies)
-            );
+            Dictionary<AbstractExchange, List<Market>> validMarkets = MarketAnalyser.GetHighVolumeMarkets(exchanges);
 
-            Console.WriteLine("High volume currencies: ");
-            foreach (string currencyCode in currencies)
+            foreach (AbstractExchange exchange in exchanges)
             {
-                Console.WriteLine(currencyCode);
+                Console.WriteLine("High volume currencies on "
+                    + exchange.Label + ": ");
+                foreach (Market market in validMarkets[exchange])
+                {
+                    Console.WriteLine(market.ToString());
+                }
             }
 
             Console.WriteLine("\nDone");
