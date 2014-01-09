@@ -114,11 +114,8 @@ namespace Lostics.SimpleArbitrageBot
                         }
                     }
 
-                    if (null == highestBid || null == lowestAsk)
-                    {
-                        writer.WriteLine(label + ": No valid price.");
-                    }
-                    else
+                    if (null != highestBid
+                        && null != lowestAsk)
                     {
                         writer.WriteLine(label + ": High bid is "
                             + highestBid + ", lowest ask is "

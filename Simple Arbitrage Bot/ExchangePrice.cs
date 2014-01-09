@@ -17,22 +17,22 @@ namespace Lostics.SimpleArbitrageBot
         {
             Book marketOrders = await this.Exchange.GetMarketOrders(this.Market.MarketId);
 
-            if (marketOrders.Buy.Count == 0)
+            if (marketOrders.Bids.Count == 0)
             {
                 this.Bid = null;
             }
             else
             {
-                this.Bid = marketOrders.Sell[0].Price;
+                this.Bid = marketOrders.Bids[0].Price;
             }
 
-            if (marketOrders.Sell.Count == 0)
+            if (marketOrders.Asks.Count == 0)
             {
                 this.Ask = null;
             }
             else
             {
-                this.Ask = marketOrders.Buy[0].Price;
+                this.Ask = marketOrders.Asks[0].Price;
             }
         }
 
