@@ -53,7 +53,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core.cs" />
+    <Compile Include="ExchangePrice.cs" />
+    <Compile Include="IdentityPrice.cs" />
     <Compile Include="MarketAnalyser.cs" />
+    <Compile Include="MarketMatrix.cs" />
+    <Compile Include="MarketPrice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

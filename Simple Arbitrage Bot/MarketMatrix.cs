@@ -2,59 +2,61 @@
 using Lostics.NCryptoExchange.Model;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Lostics.SimpleArbitrageBot
 {
     public class MarketMatrix
     {
-        private readonly Dictionary<string, int> currencyIndices;
+        private readonly Dictionary<string, int> currencyIndices = new Dictionary<string, int>();
+        private readonly Dictionary<int, string> currencyCodes = new Dictionary<int, string>();
 
         // The following arrays are ordered by base currency, then quote currency
 
-        private readonly List<Market>[,] markets;
-        private readonly List<Price>[,] prices;
+        private readonly List<MarketPrice>[,] prices;
 
         public MarketMatrix(Dictionary<AbstractExchange, List<Market>> markets)
         {
             string[] currencies = GetIndividualCurrencies(markets);
-            this.currencyIndices = new Dictionary<string, int>();
 
-            this.prices = new List<Price>[currencies.Length, currencies.Length];
-            for (int currencyIdx = 0; currencyIdx < currencies.Length; currencyIdx++)
+            // Construct the empty prices array, and fill in prices for exchanging
+            // a currency with itself.
+            this.prices = new List<MarketPrice>[currencies.Length, currencies.Length];
+            for (int baseCurrencyIdx = 0; baseCurrencyIdx < currencies.Length; baseCurrencyIdx++)
             {
-                currencyIndices[currencies[currencyIdx]] = currencyIdx;
-                this.prices[currencyIdx, currencyIdx] = new List<Price>()
+                currencyIndices[currencies[baseCurrencyIdx]] = baseCurrencyIdx;
+                currencyCodes[baseCurrencyIdx] = currencies[baseCurrencyIdx];
+
+                for (int quoteCurrencyIdx = 0; quoteCurrencyIdx < currencies.Length; quoteCurrencyIdx++)
                 {
-                    new IdentityPrice()
-                };
+                    this.prices[baseCurrencyIdx, quoteCurrencyIdx] = new List<MarketPrice>();
+                }
+
+                this.prices[baseCurrencyIdx, baseCurrencyIdx].Add(new IdentityPrice());
             }
 
-            this.markets = GetMarketsMatrix(this.currencyIndices, markets);
-        }
-
-        private static List<Market>[,] GetMarketsMatrix(Dictionary<string, int> currencies,
-            Dictionary<AbstractExchange, List<Market>> markets)
-        {
-            List<Market>[,] marketMatrix = new List<Market>[currencies.Count, currencies.Count];
-
-            foreach (List<Market> exchangeMarkets in markets.Values)
-            {
-                foreach (Market market in exchangeMarkets)
+            // Insert placeholders for currency pairs which can be traded
+            // directly.
+            foreach (AbstractExchange exchange in markets.Keys) {
+                foreach (Market market in markets[exchange])
                 {
-                    List<Market> marketList = marketMatrix[currencies[market.BaseCurrencyCode], currencies[market.QuoteCurrencyCode]];
+                    int baseCurrencyIdx = this.currencyIndices[market.BaseCurrencyCode];
+                    int quoteCurrencyIdx = this.currencyIndices[market.QuoteCurrencyCode];
 
-                    if (null == marketList)
-                    {
-                        marketList = new List<Market>();
-                        marketMatrix[currencies[market.BaseCurrencyCode], currencies[market.QuoteCurrencyCode]] = marketList;
-                    }
-                    marketList.Add(market);
+                    this.prices[baseCurrencyIdx, quoteCurrencyIdx].Add(
+                        new ExchangePrice()
+                        {
+                            Exchange = exchange,
+                            Market = market
+                        }
+                    );
                 }
             }
 
-            return marketMatrix;
+            // TODO: Build up indirect currency pairs here
         }
 
         private static string[] GetIndividualCurrencies(Dictionary<AbstractExchange, List<Market>> validMarkets)
@@ -73,16 +75,91 @@ namespace Lostics.SimpleArbitrageBot
             return currencies.ToArray();
         }
 
-        public abstract class Price
+        public void DumpPrices(TextWriter writer)
         {
-            public abstract bool IsValid { get; }
-            public abstract bool IsTradeable { get; }
+            int currencyCount = prices.GetLength(0);
+
+            // Start the data fetch running in parallel
+            for (int baseCurrencyIdx = 0; baseCurrencyIdx < currencyCount; baseCurrencyIdx++)
+            {
+                for (int quoteCurrencyIdx = 0; quoteCurrencyIdx < currencyCount; quoteCurrencyIdx++)
+                {
+                    if (baseCurrencyIdx == quoteCurrencyIdx)
+                    {
+                        continue;
+                    }
+
+                    decimal? highestBid = null;
+                    decimal? lowestAsk = null;
+                    string label = this.currencyCodes[baseCurrencyIdx] + "/"
+                        + this.currencyCodes[quoteCurrencyIdx];
+
+                    foreach (MarketPrice marketPrice in this.prices[baseCurrencyIdx, quoteCurrencyIdx])
+                    {
+                        if (marketPrice.Bid != null)
+                        {
+                            if (highestBid == null
+                                || marketPrice.Bid > highestBid)
+                            {
+                                highestBid = marketPrice.Bid;
+                            }
+                        }
+                        if (marketPrice.Ask != null)
+                        {
+                            if (lowestAsk == null
+                                || marketPrice.Ask < lowestAsk)
+                            {
+                                lowestAsk = marketPrice.Ask;
+                            }
+                        }
+                    }
+
+                    if (null == highestBid || null == lowestAsk)
+                    {
+                        writer.WriteLine(label + ": No valid price.");
+                    }
+                    else
+                    {
+                        writer.WriteLine(label + ": High bid is "
+                            + highestBid + ", lowest ask is "
+                            + lowestAsk);
+                    }
+                }
+            }
         }
 
-        public class IdentityPrice : Price
+        public void UpdatePrices()
         {
-            public bool IsValid { get { return false; } }
-            public bool IsTradeable { get { return false; } }
+            if (prices.Length == 0)
+            {
+                return;
+            }
+
+            List<Task> tasks = new List<Task>();
+            int currencyCount = prices.GetLength(0);
+
+            // Start the data fetch running in parallel
+            for (int baseCurrencyIdx = 0; baseCurrencyIdx < currencyCount; baseCurrencyIdx++)
+            {
+                for (int quoteCurrencyIdx = 0; quoteCurrencyIdx < currencyCount; quoteCurrencyIdx++)
+                {
+                    if (baseCurrencyIdx == quoteCurrencyIdx)
+                    {
+                        continue;
+                    }
+
+                    foreach (MarketPrice marketPrice in this.prices[baseCurrencyIdx, quoteCurrencyIdx])
+                    {
+                        tasks.Add(marketPrice.UpdatePrice());
+                    }
+                }
+            }
+
+            // Wait for all tasks to finish before we exit
+            foreach (Task task in tasks)
+            {
+                task.Wait();
+            }
         }
     }
 }
