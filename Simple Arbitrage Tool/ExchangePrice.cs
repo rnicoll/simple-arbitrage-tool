@@ -38,8 +38,7 @@ namespace Lostics.SimpleArbitrageTool
 
         public override decimal? Ask { get; set; }
         public override decimal? Bid { get; set; }
-        public AbstractExchange Exchange { get; set; }
-        public override string ExchangeLabel { get { return Exchange.Label; } }
+        public override AbstractExchange Exchange { get; set; }
         public Market Market { get; set; }
         public override bool IsTradeable { get { return true; } }
     }

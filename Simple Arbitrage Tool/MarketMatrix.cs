@@ -32,10 +32,11 @@ namespace Lostics.SimpleArbitrageTool
 
                 for (int quoteCurrencyIdx = 0; quoteCurrencyIdx < currencies.Length; quoteCurrencyIdx++)
                 {
-                    this.prices[baseCurrencyIdx, quoteCurrencyIdx] = new List<MarketPrice>();
+                    if (baseCurrencyIdx != quoteCurrencyIdx)
+                    {
+                        this.prices[baseCurrencyIdx, quoteCurrencyIdx] = new List<MarketPrice>();
+                    }
                 }
-
-                this.prices[baseCurrencyIdx, baseCurrencyIdx].Add(new IdentityPrice());
             }
 
             // Insert placeholders for currency pairs which can be traded
