@@ -2,12 +2,10 @@
 using Lostics.NCryptoExchange.CoinsE;
 using Lostics.NCryptoExchange.Cryptsy;
 using Lostics.NCryptoExchange.Model;
+using Lostics.NCryptoExchange.Vircurex;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Lostics.SimpleArbitrageTool
 {
@@ -15,6 +13,7 @@ namespace Lostics.SimpleArbitrageTool
     {
         public const string COINS_E_CONFIGURATION_FILENAME = "coins_e.conf";
         public const string CRYPTSY_CONFIGURATION_FILENAME = "cryptsy.conf";
+        public const string VIRCUREX_CONFIGURATION_FILENAME = "vircurex.conf";
 
         public static void Main()
         {
@@ -22,10 +21,14 @@ namespace Lostics.SimpleArbitrageTool
             {
                 using (CoinsEExchange coinsE = CoinsEExchange.GetExchange(FindCoinsEConfigurationFile()))
                 {
-                    DoAnalysis(new List<AbstractExchange>() {
-                        cryptsy,
-                        coinsE
-                    });
+                    using (VircurexExchange vircurex = new VircurexExchange())
+                    {
+                        DoAnalysis(new List<AbstractExchange>() {
+                            cryptsy,
+                            coinsE,
+                            vircurex
+                        });
+                    }
                 }
             }
         }
@@ -47,7 +50,8 @@ namespace Lostics.SimpleArbitrageTool
 
         private static FileInfo FindCoinsEConfigurationFile()
         {
-            return new FileInfo(Path.Combine(GetConfigurationDirectory().FullName, COINS_E_CONFIGURATION_FILENAME));
+            return new FileInfo(Path.Combine(GetConfigurationDirectory().FullName,
+                COINS_E_CONFIGURATION_FILENAME));
         }
 
         private static DirectoryInfo GetConfigurationDirectory()
@@ -57,7 +61,14 @@ namespace Lostics.SimpleArbitrageTool
 
         private static FileInfo FindCryptsyConfigurationFile()
         {
-            return new FileInfo(Path.Combine(GetConfigurationDirectory().FullName, CRYPTSY_CONFIGURATION_FILENAME));
+            return new FileInfo(Path.Combine(GetConfigurationDirectory().FullName,
+                CRYPTSY_CONFIGURATION_FILENAME));
+        }
+
+        private static FileInfo FindVircurexConfigurationFile()
+        {
+            return new FileInfo(Path.Combine(GetConfigurationDirectory().FullName,
+                VIRCUREX_CONFIGURATION_FILENAME));
         }
     }
 }
