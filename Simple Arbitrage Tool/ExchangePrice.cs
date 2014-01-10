@@ -13,10 +13,13 @@ namespace Lostics.SimpleArbitrageTool
     /// </summary>
     public class ExchangePrice : MarketPrice
     {
-        public override async Task UpdatePrice()
+        public override async Task UpdatePriceAsync()
         {
-            Book marketOrders = await this.Exchange.GetMarketOrders(this.Market.MarketId);
+            UpdatePrice(await this.Exchange.GetMarketOrders(this.Market.MarketId));
+        }
 
+        public override void UpdatePrice(Book marketOrders)
+        {
             if (marketOrders.Bids.Count == 0)
             {
                 this.Bid = null;

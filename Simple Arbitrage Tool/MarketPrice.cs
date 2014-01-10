@@ -1,4 +1,5 @@
 ﻿using Lostics.NCryptoExchange;
+using Lostics.NCryptoExchange.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,7 +40,8 @@ namespace Lostics.SimpleArbitrageTool
             return hash;
         }
 
-        public abstract Task UpdatePrice();
+        public abstract Task UpdatePriceAsync();
+        public abstract void UpdatePrice(Book marketOrders);
 
         public abstract decimal? Ask { get; set;  }
         public abstract decimal? Bid { get; set; }

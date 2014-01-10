@@ -1,5 +1,6 @@
 ﻿using Lostics.NCryptoExchange;
 using Lostics.NCryptoExchange.Model;
+using Lostics.NCryptoExchange.Vircurex;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -141,7 +142,11 @@ namespace Lostics.SimpleArbitrageTool
             List<Task> tasks = new List<Task>();
             int currencyCount = prices.GetLength(0);
 
-            // Start the data fetch running in parallel
+            Dictionary<MarketId, MarketPrice> vircurexPrices = new Dictionary<MarketId, MarketPrice>();
+            HashSet<string> vircurexQuoteCurrencyCodes = new HashSet<string>();
+            VircurexExchange vircurex = null;
+
+            // Start the data fetch running in parallel; non-Vircurex first
             for (int baseCurrencyIdx = 0; baseCurrencyIdx < currencyCount; baseCurrencyIdx++)
             {
                 for (int quoteCurrencyIdx = 0; quoteCurrencyIdx < currencyCount; quoteCurrencyIdx++)
@@ -153,7 +158,36 @@ namespace Lostics.SimpleArbitrageTool
 
                     foreach (MarketPrice marketPrice in this.prices[baseCurrencyIdx, quoteCurrencyIdx])
                     {
-                        tasks.Add(marketPrice.UpdatePrice());
+                        if (marketPrice.Exchange is VircurexExchange)
+                        {
+                            VircurexMarketId marketId = new VircurexMarketId(currencyCodes[baseCurrencyIdx],
+                                currencyCodes[quoteCurrencyIdx]);
+
+                            vircurexQuoteCurrencyCodes.Add(marketId.QuoteCurrencyCode);
+                            vircurexPrices[marketId] = marketPrice;
+                            vircurex = (VircurexExchange)marketPrice.Exchange;
+                        }
+                        else
+                        {
+                            tasks.Add(marketPrice.UpdatePriceAsync());
+                        }
+                    }
+                }
+            }
+
+            // Perform data fetch for Vircurex currencies; these can be
+            // done in a batch, so we do them once the rest of the data
+            // requests are running
+            foreach (string quoteCurrencyCode in vircurexQuoteCurrencyCodes)
+            {
+                Dictionary<MarketId, Book> books = vircurex.GetMarketOrdersAlt(quoteCurrencyCode).Result;
+
+                foreach (MarketId marketId in books.Keys) {
+                    MarketPrice marketPrice;
+
+                    if (vircurexPrices.TryGetValue(marketId, out marketPrice))
+                    {
+                        marketPrice.UpdatePrice(books[marketId]);
                     }
                 }
             }
