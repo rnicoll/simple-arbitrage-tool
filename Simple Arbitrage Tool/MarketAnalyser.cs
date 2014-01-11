@@ -10,13 +10,13 @@ namespace Lostics.SimpleArbitrageTool
 {
     public class MarketAnalyser
     {
-        public static Dictionary<AbstractExchange, List<Market>> GetHighVolumeMarkets(List<AbstractExchange> exchanges,
+        public static Dictionary<IExchange, List<Market>> GetHighVolumeMarkets(List<IExchange> exchanges,
             string referenceCurrencyCode, int maxCurrencies)
         {
-            Dictionary<AbstractExchange, Task<List<Market>>> allMarkets = new Dictionary<AbstractExchange, Task<List<Market>>>();
+            Dictionary<IExchange, Task<List<Market>>> allMarkets = new Dictionary<IExchange, Task<List<Market>>>();
 
             // Start fetching markets for all exchanges
-            foreach (AbstractExchange exchange in exchanges)
+            foreach (IExchange exchange in exchanges)
             {
                 allMarkets.Add(exchange, exchange.GetMarkets());
             }
@@ -36,9 +36,9 @@ namespace Lostics.SimpleArbitrageTool
                 cutOff = highestVolumes[maxCurrencies - 1];
             }
                 
-            Dictionary<AbstractExchange, List<Market>> validMarkets = new Dictionary<AbstractExchange, List<Market>>();
+            Dictionary<IExchange, List<Market>> validMarkets = new Dictionary<IExchange, List<Market>>();
 
-            foreach (AbstractExchange exchange in exchanges)
+            foreach (IExchange exchange in exchanges)
             {
                 List<Market> markets = allMarkets[exchange].Result
                     .Where(x => currenciesByVolume[x.BaseCurrencyCode] >= cutOff)
@@ -56,12 +56,12 @@ namespace Lostics.SimpleArbitrageTool
         /// </summary>
         /// <param name="allMarkets">A mapping from exchange to a list of markets</param>
         /// <returns>A mapping from currency code, to volume traded.</returns>
-        private static Dictionary<string, decimal> GetCurrenciesByVolume(Dictionary<AbstractExchange, Task<List<Market>>> allMarkets,
+        private static Dictionary<string, decimal> GetCurrenciesByVolume(Dictionary<IExchange, Task<List<Market>>> allMarkets,
             string referenceCurrencyCode)
         {
             Dictionary<string, decimal> currenciesByVolume = new Dictionary<string, decimal>();
 
-            foreach (AbstractExchange exchange in allMarkets.Keys)
+            foreach (IExchange exchange in allMarkets.Keys)
             {
                 List<Market> markets = allMarkets[exchange].Result;
 

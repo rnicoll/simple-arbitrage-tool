@@ -32,7 +32,7 @@ namespace Lostics.SimpleArbitrageTool
                     {
                         using (VircurexExchange vircurex = new VircurexExchange())
                         {
-                            DoAnalysis(new List<AbstractExchange>() {
+                            DoAnalysis(new List<IExchange>() {
                                 cryptsy,
                                 coinsE,
                                 vircurex
@@ -50,10 +50,10 @@ namespace Lostics.SimpleArbitrageTool
             }
         }
 
-        private static void DoAnalysis(List<AbstractExchange> exchanges)
+        private static void DoAnalysis(List<IExchange> exchanges)
         {
             const int maxCurrencies = 12;
-            Dictionary<AbstractExchange, List<Market>> validMarkets
+            Dictionary<IExchange, List<Market>> validMarkets
                 = MarketAnalyser.GetHighVolumeMarkets(exchanges, "BTC", maxCurrencies);
             MarketMatrix marketMatrix = new MarketMatrix(validMarkets);
 

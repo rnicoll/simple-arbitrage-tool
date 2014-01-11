@@ -19,7 +19,7 @@ namespace Lostics.SimpleArbitrageTool
 
         private readonly List<MarketPrice>[,] prices;
 
-        public MarketMatrix(Dictionary<AbstractExchange, List<Market>> markets)
+        public MarketMatrix(Dictionary<IExchange, List<Market>> markets)
         {
             string[] currencies = GetIndividualCurrencies(markets);
 
@@ -42,7 +42,7 @@ namespace Lostics.SimpleArbitrageTool
 
             // Insert placeholders for currency pairs which can be traded
             // directly.
-            foreach (AbstractExchange exchange in markets.Keys) {
+            foreach (IExchange exchange in markets.Keys) {
                 foreach (Market market in markets[exchange])
                 {
                     int baseCurrencyIdx = this.currencyIndices[market.BaseCurrencyCode];
@@ -59,7 +59,7 @@ namespace Lostics.SimpleArbitrageTool
             }
         }
 
-        private static string[] GetIndividualCurrencies(Dictionary<AbstractExchange, List<Market>> validMarkets)
+        private static string[] GetIndividualCurrencies(Dictionary<IExchange, List<Market>> validMarkets)
         {
             HashSet<string> currencies = new HashSet<string>();
 
