@@ -53,7 +53,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArbitrageOpportunity.cs" />
+    <Compile Include="ConfigurationInvalidException.cs" />
+    <Compile Include="ConfigurationMissingException.cs" />
     <Compile Include="Core.cs" />
+    <Compile Include="ExchangeConfigurationException.cs" />
     <Compile Include="ExchangePrice.cs" />
     <Compile Include="MarketAnalyser.cs" />
     <Compile Include="MarketMatrix.cs" />
