@@ -104,10 +104,7 @@ namespace Lostics.SimpleArbitrageTool
 
                 if (fullRoute)
                 {
-                    IndirectPrice routedPrice = new IndirectPrice(route);
-
-                    routedMarket.Add(routedPrice);
-                    Console.WriteLine("Added indirect route " + routedPrice.MarketLabel);
+                    routedMarket.Add(new IndirectPrice(route));
                 }
             }
         }
