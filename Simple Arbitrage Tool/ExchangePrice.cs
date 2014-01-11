@@ -25,32 +25,32 @@ namespace Lostics.SimpleArbitrageTool
 
         public async Task UpdatePriceAsync()
         {
-            UpdatePrice(await this.Exchange.GetMarketOrders(this.Market.MarketId));
+            UpdatePrice(await this.Exchange.GetMarketDepth(this.Market.MarketId));
         }
 
-        public void UpdatePrice(Book marketOrders)
+        public void UpdatePrice(Book marketDepth)
         {
-            if (marketOrders.Bids.Count == 0)
+            if (marketDepth.Bids.Count == 0)
             {
                 this.bid = null;
             }
             else
             {
-                this.bid = marketOrders.Bids[0].Price;
+                this.bid = marketDepth.Bids[0].Price;
             }
 
-            if (marketOrders.Asks.Count == 0)
+            if (marketDepth.Asks.Count == 0)
             {
                 this.ask = null;
             }
             else
             {
-                this.ask = marketOrders.Asks[0].Price;
+                this.ask = marketDepth.Asks[0].Price;
             }
         }
 
-        public override decimal? Ask { get { return this.bid; } }
-        public override decimal? Bid { get { return this.ask; } }
+        public override decimal? Ask { get { return this.ask; } }
+        public override decimal? Bid { get { return this.bid; } }
         public override IExchange Exchange { get { return this.exchange; } }
         public Market Market { get; private set; }
         public override bool IsTradeable { get { return true; } }
