@@ -7,23 +7,22 @@ namespace Lostics.SimpleArbitrageTool
 {
     public class ArbitrageOpportunity
     {
-        private readonly string label;
         private readonly MarketPrice lowestAsk;
         private readonly MarketPrice highestBid;
 
-        public ArbitrageOpportunity(string label,
-            MarketPrice lowestAsk, MarketPrice highestBid)
+        public ArbitrageOpportunity(MarketPrice lowestAsk, MarketPrice highestBid)
         {
-            this.label = label;
             this.lowestAsk = lowestAsk;
             this.highestBid = highestBid;
         }
 
         public override string ToString()
         {
-            return label + ": Buy at "
+            return "Buy "
+            + lowestAsk.MarketLabel + " at "
             + lowestAsk.Ask + " on "
-            + lowestAsk.ExchangeLabel + ", sell at "
+            + lowestAsk.ExchangeLabel + ", sell "
+            + highestBid.MarketLabel + " at "
             + highestBid.Bid + " on "
             + highestBid.ExchangeLabel;
         }

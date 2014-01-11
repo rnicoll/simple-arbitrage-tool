@@ -109,6 +109,19 @@ namespace Lostics.SimpleArbitrageTool
         }
 
         public Market Market { get; set; }
+        public override string MarketLabel
+        {
+            get
+            {
+                StringBuilder label = new StringBuilder(this.Market.BaseCurrencyCode);
+
+                foreach (ExchangePrice routeElement in this.Route) {
+                    label.Append("/").Append(routeElement.Market.QuoteCurrencyCode);
+                }
+
+                return label.ToString();
+            }
+        }
         public override bool IsTradeable { get { return true; } }
     }
 }

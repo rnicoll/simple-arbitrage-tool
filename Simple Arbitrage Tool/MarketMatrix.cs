@@ -55,6 +55,90 @@ namespace Lostics.SimpleArbitrageTool
             }
         }
 
+        public void AddIndirectExchanges(params string[] currencyCodeRoute)
+        {
+            if (currencyCodeRoute.Length < 1)
+            {
+                return;
+            }
+
+            Dictionary<IExchange, ExchangePrice[]> routes = new Dictionary<IExchange, ExchangePrice[]>();
+
+            for (int currencyIdx = 1; currencyIdx < currencyCodeRoute.Length; currencyIdx++)
+            {
+                foreach (MarketPrice price in this.GetPrices(currencyCodeRoute[currencyIdx - 1], currencyCodeRoute[currencyIdx]))
+                {
+                    ExchangePrice exchangePrice = price as ExchangePrice;
+                    ExchangePrice[] routePrices;
+
+                    if (null == exchangePrice)
+                    {
+                        // Cannot route through non-exchange prices
+                        continue;
+                    }
+
+                    if (!routes.TryGetValue(exchangePrice.Exchange, out routePrices))
+                    {
+                        routePrices = new ExchangePrice[currencyCodeRoute.Length - 1];
+                        routes[exchangePrice.Exchange] = routePrices;
+                    }
+
+                    routePrices[currencyIdx - 1] = exchangePrice;
+                }
+            }
+
+            List<MarketPrice> routedMarket = this.GetPrices(currencyCodeRoute[0], currencyCodeRoute[currencyCodeRoute.Length - 1]);
+
+            foreach (IExchange exchange in routes.Keys)
+            {
+                bool fullRoute = true;
+                ExchangePrice[] route = routes[exchange];
+
+                // Check if we have steps for each part of the route.
+                for (int routeIdx = 0; routeIdx < route.Length; routeIdx++) {
+                    if (route[routeIdx] == null) {
+                        fullRoute = false;
+                        break;
+                    }
+                }
+
+                if (fullRoute)
+                {
+                    IndirectPrice routedPrice = new IndirectPrice(route);
+
+                    routedMarket.Add(routedPrice);
+                    Console.Write("Added indirect route " + routedPrice);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Fetches available markets for the given base and quote currency pair.
+        /// </summary>
+        /// <param name="baseCurrencyCode"></param>
+        /// <param name="quoteCurrencyCode"></param>
+        /// <returns></returns>
+        public List<MarketPrice> GetPrices(string baseCurrencyCode, string quoteCurrencyCode)
+        {
+            int baseCurrencyIdx;
+            int quoteCurrencyIdx;
+
+            if (!this.currencyIndices.TryGetValue(baseCurrencyCode, out baseCurrencyIdx)
+                || !this.currencyIndices.TryGetValue(quoteCurrencyCode, out quoteCurrencyIdx))
+            {
+                return new List<MarketPrice>();
+            }
+
+            if (baseCurrencyIdx == quoteCurrencyIdx)
+            {
+                throw new ArgumentException("Base and quote currency codes cannot be the same; got \""
+                    + baseCurrencyCode + "\" and \""
+                    + quoteCurrencyCode + "\" respectively.");
+            }
+
+            return this.prices[baseCurrencyIdx, quoteCurrencyIdx];
+        }
+
         private static string[] GetIndividualCurrencies(Dictionary<IExchange, List<Market>> validMarkets)
         {
             HashSet<string> currencies = new HashSet<string>();
@@ -73,8 +157,6 @@ namespace Lostics.SimpleArbitrageTool
 
         public List<ArbitrageOpportunity> GetArbitrageOpportunities()
         {
-            this.UpdateAllPrices();
-
             List<ArbitrageOpportunity> opportunities = new List<ArbitrageOpportunity>();
             int currencyCount = prices.GetLength(0);
 
@@ -117,9 +199,7 @@ namespace Lostics.SimpleArbitrageTool
                         if (highestBid.Bid > lowestAsk.Ask
                             && !highestBid.Equals(lowestAsk))
                         {
-                            string label = this.currencyCodes[baseCurrencyIdx] + "/"
-                                + this.currencyCodes[quoteCurrencyIdx];
-                            opportunities.Add(new ArbitrageOpportunity(label, lowestAsk, highestBid));
+                            opportunities.Add(new ArbitrageOpportunity(lowestAsk, highestBid));
                         }
                     }
                 }

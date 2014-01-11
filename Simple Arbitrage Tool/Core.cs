@@ -57,6 +57,11 @@ namespace Lostics.SimpleArbitrageTool
                 = MarketAnalyser.GetHighVolumeMarkets(exchanges, "BTC", maxCurrencies);
             MarketMatrix marketMatrix = new MarketMatrix(validMarkets);
 
+            marketMatrix.UpdateAllPrices();
+            marketMatrix.AddIndirectExchanges("BTC", "LTC", "DOGE");
+            marketMatrix.AddIndirectExchanges("BTC", "LTC", "QRK");
+            marketMatrix.AddIndirectExchanges("BTC", "LTC", "WDC");
+
             foreach (ArbitrageOpportunity opportunity in marketMatrix.GetArbitrageOpportunities()) {
                 Console.WriteLine(opportunity.ToString());
             }

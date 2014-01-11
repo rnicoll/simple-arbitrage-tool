@@ -47,6 +47,7 @@ namespace Lostics.SimpleArbitrageTool
         public abstract decimal? Bid { get; }
         public abstract IExchange Exchange { get; }
         public string ExchangeLabel { get { return this.Exchange.Label; } }
+        public abstract string MarketLabel { get; }
         public abstract bool IsTradeable { get; }
     }
 }
