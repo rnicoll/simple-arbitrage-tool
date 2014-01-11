@@ -11,38 +11,48 @@ namespace Lostics.SimpleArbitrageTool
     /// <summary>
     /// Represents a price for a currency, that can be traded directly on an exchange.
     /// </summary>
-    public class ExchangePrice : MarketPrice
+    public sealed class ExchangePrice : MarketPrice
     {
-        public override async Task UpdatePriceAsync()
+        private readonly IExchange exchange;
+        private decimal? ask;
+        private decimal? bid;
+
+        public ExchangePrice(IExchange exchange, NCryptoExchange.Model.Market market)
+        {
+            this.exchange = exchange;
+            this.Market = market;
+        }
+
+        public async Task UpdatePriceAsync()
         {
             UpdatePrice(await this.Exchange.GetMarketOrders(this.Market.MarketId));
         }
 
-        public override void UpdatePrice(Book marketOrders)
+        public void UpdatePrice(Book marketOrders)
         {
             if (marketOrders.Bids.Count == 0)
             {
-                this.Bid = null;
+                this.bid = null;
             }
             else
             {
-                this.Bid = marketOrders.Bids[0].Price;
+                this.bid = marketOrders.Bids[0].Price;
             }
 
             if (marketOrders.Asks.Count == 0)
             {
-                this.Ask = null;
+                this.ask = null;
             }
             else
             {
-                this.Ask = marketOrders.Asks[0].Price;
+                this.ask = marketOrders.Asks[0].Price;
             }
         }
 
-        public override decimal? Ask { get; set; }
-        public override decimal? Bid { get; set; }
-        public override IExchange Exchange { get; set; }
-        public Market Market { get; set; }
+        public override decimal? Ask { get { return this.bid; } }
+        public override decimal? Bid { get { return this.ask; } }
+        public override IExchange Exchange { get { return this.exchange; } }
+        public Market Market { get; private set; }
         public override bool IsTradeable { get { return true; } }
     }
 }

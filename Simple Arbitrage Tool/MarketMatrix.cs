@@ -49,11 +49,7 @@ namespace Lostics.SimpleArbitrageTool
                     int quoteCurrencyIdx = this.currencyIndices[market.QuoteCurrencyCode];
 
                     this.prices[baseCurrencyIdx, quoteCurrencyIdx].Add(
-                        new ExchangePrice()
-                        {
-                            Exchange = exchange,
-                            Market = market
-                        }
+                        new ExchangePrice(exchange, market)
                     );
                 }
             }
@@ -142,7 +138,7 @@ namespace Lostics.SimpleArbitrageTool
             List<Task> tasks = new List<Task>();
             int currencyCount = prices.GetLength(0);
 
-            Dictionary<MarketId, MarketPrice> vircurexPrices = new Dictionary<MarketId, MarketPrice>();
+            Dictionary<MarketId, ExchangePrice> vircurexPrices = new Dictionary<MarketId, ExchangePrice>();
             HashSet<string> vircurexQuoteCurrencyCodes = new HashSet<string>();
             VircurexExchange vircurex = null;
 
@@ -158,18 +154,28 @@ namespace Lostics.SimpleArbitrageTool
 
                     foreach (MarketPrice marketPrice in this.prices[baseCurrencyIdx, quoteCurrencyIdx])
                     {
-                        if (marketPrice.Exchange is VircurexExchange)
+                        // Can only update prices on markets which are directly tradable; other markets
+                        // infer their prices from the underlying exchange prices.
+                        // As such, ignore any non-exchange-price types.
+                        ExchangePrice exchangePrice = marketPrice as ExchangePrice;
+
+                        if (null == exchangePrice)
+                        {
+                            continue;
+                        }
+
+                        if (exchangePrice.Exchange is VircurexExchange)
                         {
                             VircurexMarketId marketId = new VircurexMarketId(currencyCodes[baseCurrencyIdx],
                                 currencyCodes[quoteCurrencyIdx]);
 
                             vircurexQuoteCurrencyCodes.Add(marketId.QuoteCurrencyCode);
-                            vircurexPrices[marketId] = marketPrice;
+                            vircurexPrices[marketId] = exchangePrice;
                             vircurex = (VircurexExchange)marketPrice.Exchange;
                         }
                         else
                         {
-                            tasks.Add(marketPrice.UpdatePriceAsync());
+                            tasks.Add(exchangePrice.UpdatePriceAsync());
                         }
                     }
                 }
@@ -183,7 +189,7 @@ namespace Lostics.SimpleArbitrageTool
                 Dictionary<MarketId, Book> books = vircurex.GetMarketOrdersAlt(quoteCurrencyCode).Result;
 
                 foreach (MarketId marketId in books.Keys) {
-                    MarketPrice marketPrice;
+                    ExchangePrice marketPrice;
 
                     if (vircurexPrices.TryGetValue(marketId, out marketPrice))
                     {

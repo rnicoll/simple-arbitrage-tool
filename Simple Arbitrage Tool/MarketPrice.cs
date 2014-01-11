@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Lostics.SimpleArbitrageTool
 {
+    /// <summary>
+    /// Generic class for tracking a price of an asset. 
+    /// </summary>
     public abstract class MarketPrice
     {
         public override bool Equals(object obj)
@@ -40,12 +43,9 @@ namespace Lostics.SimpleArbitrageTool
             return hash;
         }
 
-        public abstract Task UpdatePriceAsync();
-        public abstract void UpdatePrice(Book marketOrders);
-
-        public abstract decimal? Ask { get; set;  }
-        public abstract decimal? Bid { get; set; }
-        public abstract IExchange Exchange { get; set; }
+        public abstract decimal? Ask { get; }
+        public abstract decimal? Bid { get; }
+        public abstract IExchange Exchange { get; }
         public string ExchangeLabel { get { return this.Exchange.Label; } }
         public abstract bool IsTradeable { get; }
     }
