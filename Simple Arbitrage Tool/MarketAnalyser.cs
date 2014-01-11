@@ -21,33 +21,55 @@ namespace Lostics.SimpleArbitrageTool
                 allMarkets.Add(exchange, exchange.GetMarkets());
             }
 
-            // Find the most popular currencies
-            Dictionary<string, decimal> currenciesByVolume = GetCurrenciesByVolume(allMarkets, referenceCurrencyCode);
-                
-            // Sort the highest volumes to determine cut-off
-            List<decimal> highestVolumes = currenciesByVolume.Values.ToList();
-                
-            highestVolumes.Sort((v1, v2) => v2.CompareTo(v1));
-
-            decimal cutOff = (decimal)0.00000000;
-
-            if (highestVolumes.Count > maxCurrencies)
-            {
-                cutOff = highestVolumes[maxCurrencies - 1];
-            }
-                
-            Dictionary<IExchange, List<Market>> validMarkets = new Dictionary<IExchange, List<Market>>();
+            HashSet<string> highVolumeCurrencies
+                = GetHighVolumeCurrencies(referenceCurrencyCode, maxCurrencies, allMarkets);
+            Dictionary<IExchange, List<Market>> validMarkets
+                = new Dictionary<IExchange, List<Market>>();
 
             foreach (IExchange exchange in exchanges)
             {
                 List<Market> markets = allMarkets[exchange].Result
-                    .Where(x => currenciesByVolume[x.BaseCurrencyCode] >= cutOff)
-                    .Where(x => currenciesByVolume[x.QuoteCurrencyCode] >= cutOff)
+                    .Where(x => highVolumeCurrencies.Contains(x.BaseCurrencyCode) && highVolumeCurrencies.Contains(x.QuoteCurrencyCode))
                     .ToList();
+
                 validMarkets.Add(exchange, markets);
             }
 
             return validMarkets;
+        }
+
+        private static HashSet<string> GetHighVolumeCurrencies(string referenceCurrencyCode, int maxCurrencies, Dictionary<IExchange,
+            Task<List<Market>>> allMarkets)
+        {
+            HashSet<string> highVolumeCurrencies;
+
+            // Find the most popular currencies
+            Dictionary<string, decimal> currenciesByVolume = GetCurrenciesByVolume(allMarkets, referenceCurrencyCode);
+
+            // Sort the highest volumes to determine cut-off
+            List<decimal> highestVolumes = currenciesByVolume.Values.ToList();
+
+            highestVolumes.Sort((v1, v2) => v2.CompareTo(v1));
+
+            if (highestVolumes.Count > maxCurrencies)
+            {
+                decimal cutOff = highestVolumes[maxCurrencies - 1];
+
+                highVolumeCurrencies = new HashSet<string>();
+                foreach (string currency in currenciesByVolume.Keys)
+                {
+                    if (currenciesByVolume[currency] >= cutOff)
+                    {
+                        highVolumeCurrencies.Add(currency);
+                    }
+                }
+            }
+            else
+            {
+                highVolumeCurrencies = new HashSet<string>(currenciesByVolume.Keys);
+            }
+
+            return highVolumeCurrencies;
         }
 
         /// <summary>
