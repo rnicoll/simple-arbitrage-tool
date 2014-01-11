@@ -15,14 +15,14 @@ process. The application runs as a console tool at the moment.
 
 A summary of the analysis process is provided below for reference:
 
-- Find currencies with a high trading volume against BTC.
-- For the top dozen or so currencies, find all markets involving those currencies.
-- Get prices for all of those markets, across all available exchanges.
-- Infer prices for currencies, doing indirect trading (i.e. trading BTC/DOGE via LTC instead of directly).
-- Compare prices, and look for cases where lowest ask is below the highest bid price.
-- Display best prices where lowest ask is below highest bid.
+1. Find currencies with a high trading volume against BTC.
+2. For the top dozen or so currencies, find all markets involving those currencies.
+3. Get prices for all of those markets, across all available exchanges.
+4. Infer prices for currencies, doing indirect trading (i.e. trading BTC/DOGE via LTC instead of directly).
+5. Compare prices, and look for cases where lowest ask is below the highest bid price.
+6. Display best prices where lowest ask is below highest bid.
 
-The listed trades are *only intended as suggestions*; you should understand trading, the
+The listed trades are **only intended as suggestions**; you should understand trading, the
 risks and costs in doing so, etc. and do your own analysis before actually performing
 any trade.
 
