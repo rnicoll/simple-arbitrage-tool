@@ -266,11 +266,11 @@ namespace Lostics.SimpleArbitrageTool
                 Dictionary<MarketId, Book> books = vircurex.GetMarketOrdersAlt(quoteCurrencyCode).Result;
 
                 foreach (MarketId marketId in books.Keys) {
-                    ExchangePrice marketPrice;
+                    ExchangePrice exchangePrice;
 
-                    if (vircurexPrices.TryGetValue(marketId, out marketPrice))
+                    if (vircurexPrices.TryGetValue(marketId, out exchangePrice))
                     {
-                        marketPrice.UpdatePrice(books[marketId]);
+                        exchangePrice.MarketDepth = books[marketId];
                     }
                 }
             }

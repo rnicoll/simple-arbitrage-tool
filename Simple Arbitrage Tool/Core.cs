@@ -59,6 +59,7 @@ namespace Lostics.SimpleArbitrageTool
 
             marketMatrix.UpdateAllPrices();
             marketMatrix.AddIndirectExchanges("DOGE", "LTC", "BTC");
+            marketMatrix.AddIndirectExchanges("GDC", "LTC", "BTC");
             marketMatrix.AddIndirectExchanges("NET", "LTC", "BTC");
             marketMatrix.AddIndirectExchanges("QRK", "LTC", "BTC");
             marketMatrix.AddIndirectExchanges("WDC", "LTC", "BTC");

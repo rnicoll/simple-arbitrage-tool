@@ -14,8 +14,6 @@ namespace Lostics.SimpleArbitrageTool
     public sealed class ExchangePrice : MarketPrice
     {
         private readonly IExchange exchange;
-        private decimal? ask;
-        private decimal? bid;
 
         public ExchangePrice(IExchange exchange, NCryptoExchange.Model.Market market)
         {
@@ -25,32 +23,35 @@ namespace Lostics.SimpleArbitrageTool
 
         public async Task UpdatePriceAsync()
         {
-            UpdatePrice(await this.Exchange.GetMarketDepth(this.Market.MarketId));
+            this.MarketDepth = await this.Exchange.GetMarketDepth(this.Market.MarketId);
         }
 
-        public void UpdatePrice(Book marketDepth)
+        public override decimal? Ask
         {
-            if (marketDepth.Bids.Count == 0)
-            {
-                this.bid = null;
+            get {
+                if (this.MarketDepth.Asks.Count > 0) {
+                    return this.MarketDepth.Asks[0].Price;
+                } else {
+                    return null;
+                }
             }
-            else
+        }
+        public override decimal? Bid
+        {
+            get
             {
-                this.bid = marketDepth.Bids[0].Price;
-            }
-
-            if (marketDepth.Asks.Count == 0)
-            {
-                this.ask = null;
-            }
-            else
-            {
-                this.ask = marketDepth.Asks[0].Price;
+                if (this.MarketDepth.Bids.Count > 0)
+                {
+                    return this.MarketDepth.Bids[0].Price;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 
-        public override decimal? Ask { get { return this.ask; } }
-        public override decimal? Bid { get { return this.bid; } }
+        public Book MarketDepth { get; set; }
         public override IExchange Exchange { get { return this.exchange; } }
         public Market Market { get; private set; }
         public override string MarketLabel { get { return this.Market.Label; } }
