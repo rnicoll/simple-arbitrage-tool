@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Lostics.SimpleArbitrageBot;
+using Lostics.NCryptoExchange.Bter;
 
 namespace Lostics.SimpleArbitrageTool
 {
@@ -22,21 +23,25 @@ namespace Lostics.SimpleArbitrageTool
         {
             try
             {
-                PublicPrivateKeyPair cryptsyConfiguration = LoadPublicPrivateKeyPair(CRYPTSY_CONFIGURATION_FILENAME);
-
-                using (CryptsyExchange cryptsy = new CryptsyExchange(cryptsyConfiguration.PublicKey, cryptsyConfiguration.PrivateKey))
+                using (BterExchange bter = new BterExchange())
                 {
-                    PublicPrivateKeyPair coinsEConfiguration = LoadPublicPrivateKeyPair(COINS_E_CONFIGURATION_FILENAME);
+                    PublicPrivateKeyPair cryptsyConfiguration = LoadPublicPrivateKeyPair(CRYPTSY_CONFIGURATION_FILENAME);
 
-                    using (CoinsEExchange coinsE = new CoinsEExchange(cryptsyConfiguration.PublicKey, cryptsyConfiguration.PrivateKey))
+                    using (CryptsyExchange cryptsy = new CryptsyExchange(cryptsyConfiguration.PublicKey, cryptsyConfiguration.PrivateKey))
                     {
-                        using (VircurexExchange vircurex = new VircurexExchange())
+                        PublicPrivateKeyPair coinsEConfiguration = LoadPublicPrivateKeyPair(COINS_E_CONFIGURATION_FILENAME);
+
+                        using (CoinsEExchange coinsE = new CoinsEExchange(cryptsyConfiguration.PublicKey, cryptsyConfiguration.PrivateKey))
                         {
-                            DoAnalysis(new List<IExchange>() {
-                                cryptsy,
-                                coinsE,
-                                vircurex
-                            });
+                            using (VircurexExchange vircurex = new VircurexExchange())
+                            {
+                                DoAnalysis(new List<IExchange>() {
+                                    bter,
+                                    cryptsy,
+                                    coinsE,
+                                    vircurex
+                                });
+                            }
                         }
                     }
                 }
@@ -52,7 +57,7 @@ namespace Lostics.SimpleArbitrageTool
 
         private static void DoAnalysis(List<IExchange> exchanges)
         {
-            const int maxCurrencies = 12;
+            const int maxCurrencies = 14;
             Dictionary<IExchange, List<Market>> validMarkets
                 = MarketAnalyser.GetHighVolumeMarkets(exchanges, "BTC", maxCurrencies);
             MarketMatrix marketMatrix = new MarketMatrix(validMarkets);
@@ -60,7 +65,9 @@ namespace Lostics.SimpleArbitrageTool
             marketMatrix.UpdateAllPrices();
             marketMatrix.AddIndirectExchanges("DOGE", "LTC", "BTC");
             marketMatrix.AddIndirectExchanges("GDC", "LTC", "BTC");
+            marketMatrix.AddIndirectExchanges("MEC", "LTC", "BTC");
             marketMatrix.AddIndirectExchanges("NET", "LTC", "BTC");
+            marketMatrix.AddIndirectExchanges("PPC", "LTC", "BTC");
             marketMatrix.AddIndirectExchanges("QRK", "LTC", "BTC");
             marketMatrix.AddIndirectExchanges("WDC", "LTC", "BTC");
 
