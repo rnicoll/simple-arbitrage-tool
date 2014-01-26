@@ -1,5 +1,6 @@
 ﻿using Lostics.NCryptoExchange;
 using Lostics.NCryptoExchange.CoinsE;
+using Lostics.NCryptoExchange.CoinEx;
 using Lostics.NCryptoExchange.Cryptsy;
 using Lostics.NCryptoExchange.Model;
 using Lostics.NCryptoExchange.Vircurex;
@@ -25,22 +26,26 @@ namespace Lostics.SimpleArbitrageTool
             {
                 using (BterExchange bter = new BterExchange())
                 {
-                    PublicPrivateKeyPair cryptsyConfiguration = LoadPublicPrivateKeyPair(CRYPTSY_CONFIGURATION_FILENAME);
-
-                    using (CryptsyExchange cryptsy = new CryptsyExchange(cryptsyConfiguration.PublicKey, cryptsyConfiguration.PrivateKey))
+                    using (CoinExExchange coinEx = new CoinExExchange())
                     {
-                        PublicPrivateKeyPair coinsEConfiguration = LoadPublicPrivateKeyPair(COINS_E_CONFIGURATION_FILENAME);
+                        PublicPrivateKeyPair cryptsyConfiguration = LoadPublicPrivateKeyPair(CRYPTSY_CONFIGURATION_FILENAME);
 
-                        using (CoinsEExchange coinsE = new CoinsEExchange(cryptsyConfiguration.PublicKey, cryptsyConfiguration.PrivateKey))
+                        using (CryptsyExchange cryptsy = new CryptsyExchange(cryptsyConfiguration.PublicKey, cryptsyConfiguration.PrivateKey))
                         {
-                            using (VircurexExchange vircurex = new VircurexExchange())
+                            PublicPrivateKeyPair coinsEConfiguration = LoadPublicPrivateKeyPair(COINS_E_CONFIGURATION_FILENAME);
+
+                            using (CoinsEExchange coinsE = new CoinsEExchange(cryptsyConfiguration.PublicKey, cryptsyConfiguration.PrivateKey))
                             {
-                                DoAnalysis(new List<IExchange>() {
-                                    bter,
-                                    cryptsy,
-                                    coinsE,
-                                    vircurex
-                                });
+                                using (VircurexExchange vircurex = new VircurexExchange())
+                                {
+                                    DoAnalysis(new List<IExchange>() {
+                                        bter,
+                                        coinEx,
+                                        cryptsy,
+                                        coinsE,
+                                        vircurex
+                                    });
+                                }
                             }
                         }
                     }
