@@ -7,6 +7,7 @@ using Lostics.NCryptoExchange.Vircurex;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Lostics.SimpleArbitrageBot;
 using Lostics.NCryptoExchange.Bter;
 
@@ -76,7 +77,12 @@ namespace Lostics.SimpleArbitrageTool
             marketMatrix.AddIndirectExchanges("QRK", "LTC", "BTC");
             marketMatrix.AddIndirectExchanges("WDC", "LTC", "BTC");
 
-            foreach (ArbitrageOpportunity opportunity in marketMatrix.GetArbitrageOpportunities()) {
+            // Strip any opportunities less than 1%, as non-viable
+
+            foreach (ArbitrageOpportunity opportunity in marketMatrix
+                .GetArbitrageOpportunities()
+                .Where(opportunity => opportunity.ProfitPercentage >= 1.0m))
+            {
                 Console.WriteLine(opportunity.ToString());
             }
 

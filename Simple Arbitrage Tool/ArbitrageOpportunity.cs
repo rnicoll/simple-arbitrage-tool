@@ -19,9 +19,6 @@ namespace Lostics.SimpleArbitrageTool
 
         public override string ToString()
         {
-            decimal difference = (decimal)(highestBid.Bid - lowestAsk.Ask);
-            decimal percentImprovement = difference / (decimal)lowestAsk.Ask * 100;
-
             return "Buy "
             + lowestAsk.MarketLabel + " at "
             + lowestAsk.Ask + " on "
@@ -29,7 +26,23 @@ namespace Lostics.SimpleArbitrageTool
             + highestBid.MarketLabel + " at "
             + highestBid.Bid + " on "
             + highestBid.ExchangeLabel + " for "
-            + percentImprovement.ToString("0.00", CultureInfo.InvariantCulture) + "% profit";
+            + ProfitPercentage.ToString("0.00", CultureInfo.InvariantCulture) + "% profit";
+        }
+
+        public decimal Difference
+        {
+            get
+            {
+                return highestBid.Bid.Value - lowestAsk.Ask.Value;
+            }
+        }
+
+        public decimal ProfitPercentage
+        {
+            get
+            {
+                return Difference / lowestAsk.Ask.Value * 100m;
+            }
         }
     }
 }
