@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using Lostics.SimpleArbitrageBot;
 using Lostics.NCryptoExchange.Bter;
+using Lostics.NCryptoExchange.VaultOfSatoshi;
 
 namespace Lostics.SimpleArbitrageTool
 {
@@ -17,6 +18,7 @@ namespace Lostics.SimpleArbitrageTool
     {
         public const string COINS_E_CONFIGURATION_FILENAME = "coins_e.conf";
         public const string CRYPTSY_CONFIGURATION_FILENAME = "cryptsy.conf";
+        public const string VAULT_OF_SATOSHI_CONFIGURATION_FILENAME = "vault_of_satoshi.conf";
         private const string PROPERTY_PUBLIC_KEY = "public_key";
         private const string PROPERTY_PRIVATE_KEY = "private_key";
         private const string CONFIGURATION_FOLDER = "Simple Arbitrage Tool";
@@ -31,21 +33,42 @@ namespace Lostics.SimpleArbitrageTool
                     {
                         PublicPrivateKeyPair cryptsyConfiguration = LoadPublicPrivateKeyPair(CRYPTSY_CONFIGURATION_FILENAME);
 
-                        using (CryptsyExchange cryptsy = new CryptsyExchange(cryptsyConfiguration.PublicKey, cryptsyConfiguration.PrivateKey))
+                        using (CryptsyExchange cryptsy = new CryptsyExchange()
+                            {
+                                PublicKey = cryptsyConfiguration.PublicKey,
+                                PrivateKey = cryptsyConfiguration.PrivateKey
+                            }
+                        )
                         {
                             PublicPrivateKeyPair coinsEConfiguration = LoadPublicPrivateKeyPair(COINS_E_CONFIGURATION_FILENAME);
 
-                            using (CoinsEExchange coinsE = new CoinsEExchange(cryptsyConfiguration.PublicKey, cryptsyConfiguration.PrivateKey))
-                            {
-                                using (VircurexExchange vircurex = new VircurexExchange())
+                            using (CoinsEExchange coinsE = new CoinsEExchange()
                                 {
-                                    DoAnalysis(new List<IExchange>() {
-                                        bter,
-                                        coinEx,
-                                        cryptsy,
-                                        coinsE,
-                                        vircurex
-                                    });
+                                    PublicKey = coinsEConfiguration.PublicKey,
+                                    PrivateKey = coinsEConfiguration.PrivateKey
+                                }
+                            )
+                            {
+                                PublicPrivateKeyPair vaultOfSatoshiConfiguration = LoadPublicPrivateKeyPair(VAULT_OF_SATOSHI_CONFIGURATION_FILENAME);
+
+                                using (VoSExchange vaultOfSatoshi = new VoSExchange()
+                                    {
+                                        PublicKey = vaultOfSatoshiConfiguration.PublicKey,
+                                        PrivateKey = vaultOfSatoshiConfiguration.PrivateKey
+                                    }
+                                )
+                                {
+                                    using (VircurexExchange vircurex = new VircurexExchange())
+                                    {
+                                        DoAnalysis(new List<IExchange>() {
+                                            vaultOfSatoshi,
+                                            bter,
+                                            coinEx,
+                                            cryptsy,
+                                            coinsE,
+                                            vircurex
+                                        });
+                                    }
                                 }
                             }
                         }
