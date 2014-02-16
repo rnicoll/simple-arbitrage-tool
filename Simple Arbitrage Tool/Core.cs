@@ -40,35 +40,24 @@ namespace Lostics.SimpleArbitrageTool
                             }
                         )
                         {
-                            PublicPrivateKeyPair coinsEConfiguration = LoadPublicPrivateKeyPair(COINS_E_CONFIGURATION_FILENAME);
+                            PublicPrivateKeyPair vaultOfSatoshiConfiguration = LoadPublicPrivateKeyPair(VAULT_OF_SATOSHI_CONFIGURATION_FILENAME);
 
-                            using (CoinsEExchange coinsE = new CoinsEExchange()
+                            using (VoSExchange vaultOfSatoshi = new VoSExchange()
                                 {
-                                    PublicKey = coinsEConfiguration.PublicKey,
-                                    PrivateKey = coinsEConfiguration.PrivateKey
+                                    PublicKey = vaultOfSatoshiConfiguration.PublicKey,
+                                    PrivateKey = vaultOfSatoshiConfiguration.PrivateKey
                                 }
                             )
                             {
-                                PublicPrivateKeyPair vaultOfSatoshiConfiguration = LoadPublicPrivateKeyPair(VAULT_OF_SATOSHI_CONFIGURATION_FILENAME);
-
-                                using (VoSExchange vaultOfSatoshi = new VoSExchange()
-                                    {
-                                        PublicKey = vaultOfSatoshiConfiguration.PublicKey,
-                                        PrivateKey = vaultOfSatoshiConfiguration.PrivateKey
-                                    }
-                                )
+                                using (VircurexExchange vircurex = new VircurexExchange())
                                 {
-                                    using (VircurexExchange vircurex = new VircurexExchange())
-                                    {
-                                        DoAnalysis(new List<IExchange>() {
-                                            vaultOfSatoshi,
-                                            bter,
-                                            coinEx,
-                                            cryptsy,
-                                            coinsE,
-                                            vircurex
-                                        });
-                                    }
+                                    DoAnalysis(new List<IExchange>() {
+                                        vaultOfSatoshi,
+                                        bter,
+                                        coinEx,
+                                        cryptsy,
+                                        vircurex
+                                    });
                                 }
                             }
                         }
